@@ -15,6 +15,9 @@ app.use(express.json())
 app.use(userRouter)
 app.use(bookRouter)
 
+app.use('/', (req, res) => {
+  res.send('<h1 style="text-align:center">Welcome to book directory</h1>')
+})
 app.use('/*', (req, res) => {
     res.status(404).send({error: 'page not found'})
 });
