@@ -22,7 +22,7 @@ app.use('/*', (req, res) => {
     res.status(404).send({error: 'page not found'})
 });
 
-mongoose.connect(process.env.MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true}, (res, err) => {
+mongoose.connect(process.env.MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false}, (res, err) => {
   app.listen(port)
   console.log('connected ' + port)
 })

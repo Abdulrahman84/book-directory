@@ -4,6 +4,7 @@ const multer = require('multer')
 
 const Book = require('../models/book')
 const User = require('../models/user')
+const Rate = require('../models/rate')
 const isAuth = require('../is-Auth')
 
 const router = express.Router()
@@ -35,27 +36,73 @@ router.post('/add-book', upload.single('image'), [
     // var wstream = fs.createWriteStream('images.' + extintion)
     // wstream.write(buffer)
     // wstream.end()
-
+    let photo;
+    req.file ? photo = req.file.buffer : photo = null
     try {
+        const user = await User.findById({ _id: req.user._id })
         const book = new Book({
             name: req.body.name,
             type: req.body.type,
             description: req.body.description,
-            image: req.file.buffer,
+            image: photo,
             authorId: req.user._id
         })
-
-        const user = await User.findById({ _id: req.user._id })
+        
         user.books.bookId.push(book._id)
         await user.save()
 
         book.save(() => {
             console.log('created')
-            res.status(201).send(book)
+            res.status(201).send({ created: book.name })
         })
 
     } catch (err) {
+        console.log(err)
         res.send({ error: err.message })
+    }
+})
+
+router.post('/rate-book/:id', [
+    body('rating', 'rate should be between 0 and 5').custom( value => {
+        if (value < 6 ) return new Error
+    })
+], isAuth, async (req, res) => {
+
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) { return res.status(422).send({ errors: errors.array()[0].msg }) }
+
+    const bookId = req.params.id
+    try {
+      const book = await Book.findById(bookId)
+      if (!book) return res.status(404).send({ error: 'no book found' })
+
+      const rate = await Rate.findOneAndUpdate({ _id: bookId }, {
+        rating: req.body.rating,
+        rater: req.user._id,
+        ratedBook: bookId
+      }, {
+          upsert: true,
+          new: true
+      })
+      const ratesArray = await Rate.aggregate([
+          {
+            $group: {
+              '_id': '$ratedBook',
+              'avergeRate': { $avg: '$rating' }
+            }
+          }
+        ])
+      const avgRate = ratesArray.find( document => {
+        return document._id.toString() === rate.ratedBook.toString()
+      })
+      book.rate = avgRate.avergeRate.toFixed(1)
+      await book.save()
+      
+
+      res.status(201).send({ rate: rate.rating })
+    } catch (err) {
+        console.log(err)
+        res.status(500).send(err)
     }
 })
 
@@ -168,6 +215,21 @@ router.get('/book-by-type', async (req, res) => {
             .limit(parseInt(req.query.limit))
             .skip(parseInt(req.query.skip))
         if (!books.length) return res.status(404).send()
+        res.send(books)
+    } catch (err) {
+        res.send(err)
+    }
+})
+
+router.get('/book-by-rate', async (req, res) => {
+    try {
+        const rate = req.query.rate
+        if (!rate) return res.send({ error: 'please provide a rate search' })
+        const books = await Book.find({ rate: parseInt(rate) })
+            .sort({ createdAt: 1 })
+            .limit(parseInt(req.query.limit))
+            .skip(parseInt(req.query.skip))
+        if (!books.length) return res.status(404).send({ error: 'Sorry, no book matched your search' })
         res.send(books)
     } catch (err) {
         res.send(err)

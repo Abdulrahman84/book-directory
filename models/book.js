@@ -21,6 +21,10 @@ const Book = new mongoose.Schema({
     image: {
         type: Buffer
     },
+    rate: {
+        type: Number,
+        default: 0
+    },
     authorId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
