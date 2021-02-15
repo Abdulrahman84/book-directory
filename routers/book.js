@@ -76,7 +76,7 @@ router.post('/rate-book/:id', [
       const book = await Book.findById(bookId)
       if (!book) return res.status(404).send({ error: 'no book found' })
 
-      const rate = await Rate.findOneAndUpdate({ _id: bookId }, {
+      const rate = await Rate.findOneAndUpdate({ ratedBook: bookId, rater: req.user._id }, {
         rating: req.body.rating,
         rater: req.user._id,
         ratedBook: bookId
@@ -95,6 +95,7 @@ router.post('/rate-book/:id', [
       const avgRate = ratesArray.find( document => {
         return document._id.toString() === rate.ratedBook.toString()
       })
+      console.log(avgRate.avergeRate.toFixed(1))
       book.rate = avgRate.avergeRate.toFixed(1)
       await book.save()
       
