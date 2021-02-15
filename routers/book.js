@@ -226,7 +226,7 @@ router.get('/book-by-rate', async (req, res) => {
     try {
         const rate = req.query.rate
         if (!rate) return res.send({ error: 'please provide a rate search' })
-        const books = await Book.find({ rate: parseInt(rate) })
+        const books = await Book.find({ rate: rate })
             .sort({ createdAt: 1 })
             .limit(parseInt(req.query.limit))
             .skip(parseInt(req.query.skip))
