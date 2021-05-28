@@ -22,7 +22,7 @@ npm run dev (nodemon) (port 3000)
 - Login (email, password)
   - https://book-directory0.herokuapp.com/login
 
-- Add a new book (name, type, description)
+- Add a new book (name, type, description, image)
   - https://book-directory0.herokuapp.com/add-book
   
 - Rate a book
