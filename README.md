@@ -50,8 +50,11 @@ npm run dev (nodemon) (port 3000)
 - View one book
   - https://book-directory0.herokuapp.com/single-book/:bookId
   
-- View sgined in user's books with skip and limit
+- View all books with skip and limit
   - https://book-directory0.herokuapp.com/all-books?limit=10&skip=0
+
+- View signed in user's books 
+  - https://book-directory0.herokuapp.com/my-books
 
 - Search book by name
   - https://book-directory0.herokuapp.com/book-by-name?bookName=arabic
