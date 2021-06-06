@@ -39,8 +39,6 @@ Book.methods.toJSON = function () {
   const book = this;
   const bookObject = book.toObject();
 
-  // delete bookObject.image;
-
   return bookObject;
 };
 
