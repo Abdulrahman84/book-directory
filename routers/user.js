@@ -9,16 +9,28 @@ const isAuth = require("../is-Auth");
 
 const router = express.Router();
 
-const upload = multer({
-  limits: {
-    fileSize: 1000000,
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./public/uploads");
   },
+  filename: function (req, file, cb) {
+    cb(
+      null,
+      `${file.originalname.split(".")[0]}-${Date.now()}.${
+        file.originalname.split(".")[1]
+      }`
+    );
+  },
+});
+
+const upload = multer({
   fileFilter(req, file, cb) {
     if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
       return cb(new Error("Please upload an image"));
     }
     cb(undefined, true);
   },
+  storage,
 });
 
 router.get("/profile", isAuth, async (req, res) => {
@@ -35,7 +47,7 @@ router.post(
     body("email").isEmail().withMessage("email is invalid"),
     body(
       "password",
-      "password should be only text and numbers and at least 6 characters long"
+      "password should be only text and numbers and at least 5 characters long"
     )
       .isLength({ min: 5 })
       .isAlphanumeric(),
@@ -45,21 +57,16 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(422).send({ errors: errors.array()[0].msg });
     }
-
-    // const fs = require('fs')
-    // const buffer = req.file.buffer
-    // const extintion = req.file.originalname.split('.')[1]
-    // var wstream = fs.createWriteStream('images.' + extintion)
-    // wstream.write(buffer)
-    // wstream.end()
     let photo;
-    req.file ? (photo = req.file.buffer) : (photo = null);
     try {
       const emailMatch = await User.findOne({ email: req.body.email });
       if (emailMatch)
         return res
           .status(400)
           .send({ error: "email already in use try another one" });
+
+      req.file ? (photo = req.file.path) : (photo = null);
+
       const hashedPassword = await bcrypt.hash(req.body.password, 10);
       const user = new User({
         name: req.body.name,
@@ -196,7 +203,8 @@ router.post(
   isAuth,
   upload.single("profilePhoto"),
   async (req, res) => {
-    if (!req.file) return res.status(400).send("please upload a photo");
+    if (!req.file)
+      return res.status(400).send({ error: "please upload a photo" });
     req.user.profilePhoto = req.file.buffer;
     await req.user.save();
     res.send(req.user);

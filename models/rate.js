@@ -1,23 +1,23 @@
-const mongoose = require('mongoose')
-
+const mongoose = require("mongoose");
 
 const Rate = mongoose.Schema({
   rating: {
     type: Number,
-    min: 0, max: 5,
-    default: 0
+    min: 0,
+    max: 5,
+    default: 0,
   },
   rater: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    ref: "User",
+    required: true,
   },
   ratedBook: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Book',
-    required: true
-  }
-})
+    ref: "Book",
+    required: true,
+  },
+});
 
 // userSchema.virtual('rates', {
 //   ref: 'Rate',
@@ -25,4 +25,4 @@ const Rate = mongoose.Schema({
 //   foreignField: 'rater'
 // })
 
-module.exports = mongoose.model('Rate', Rate)
+module.exports = mongoose.model("Rate", Rate);
