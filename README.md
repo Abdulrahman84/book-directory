@@ -16,25 +16,25 @@ npm run dev (nodemon) (port 3000)
 
 - Signup for a new account (name, email, password) with the ability to add a profile picture
   - https://book-directory0.herokuapp.com/signup
-- Login (email, password)
 
+- Login (email, password)
   - https://book-directory0.herokuapp.com/login
 
 - Add a new book (name, type, description, image)
   - https://book-directory0.herokuapp.com/add-book
+
 - Rate a book
   - https://book-directory0.herokuapp.com/rate-book/:bookId
+
 - Logout
   - https://book-directory0.herokuapp.com/logout
 
 <h4>PATCH REQUESTS</h4>
 
 - Set/update profile picture
-
   - https://book-directory0.herokuapp.com/profilePhoto
 
 - Update profile info
-
   - https://book-directory0.herokuapp.com/update-user/:userId
 
 - update a book
@@ -43,31 +43,22 @@ npm run dev (nodemon) (port 3000)
 <h4>GET REQUESTS</h4>
 
 - View profile
-
   - https://book-directory0.herokuapp.com/profile
 
 - View one book
   - https://book-directory0.herokuapp.com/single-book/:bookId
-    <<<<<<< HEAD
-- View sgined in user's books with skip and limit
-
-=======
 
 - View all books with skip and limit
-
-  > > > > > > > 939c8761c595d2b6f9f7fb4c9345c142bf9613df
-
   - https://book-directory0.herokuapp.com/all-books?limit=10&skip=0
 
 - View signed in user's books
-
   - https://book-directory0.herokuapp.com/my-books
 
 - Search book by name
-
   - https://book-directory0.herokuapp.com/book-by-name?bookName=arabic
 
 - Search book by type
   - https://book-directory0.herokuapp.com/book-by-type?type=funny
+
 - Search book by rate
   - https://book-directory0.herokuapp.com/book-by-rate?rate=4
