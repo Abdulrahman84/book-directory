@@ -35,10 +35,6 @@ app.use("/*", (req, res) => {
   res.status(404).send({ error: "page not found" });
 });
 
-app.use((error, req, res, next) => {
-  console.log("This is the rejected field ->", error);
-});
-
 mongoose.connect(
   process.env.MONGODB_URI,
   { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false },
