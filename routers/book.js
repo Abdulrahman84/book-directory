@@ -26,10 +26,16 @@ router.post(
       return res.status(422).send({ errors: errors.array()[0].msg });
     }
     let photo;
-
+    let cl_id;
     try {
-      const result = await cloudinary.uploader.upload(req.file.path);
-      req.file ? (photo = result.secure_url) : (photo = null);
+      if (req.file) {
+        const result = await cloudinary.uploader.upload(req.file.path);
+        photo = result.secure_url;
+        cl_id = result.public_id;
+      } else {
+        photo = null;
+        cl_id = null;
+      }
 
       const user = await User.findById({ _id: req.user._id });
       const book = new Book({
