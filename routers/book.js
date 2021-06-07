@@ -1,40 +1,12 @@
 const express = require("express");
 const { body, validationResult } = require("express-validator");
-const multer = require("multer");
-
+const { upload, cloudinary } = require("../upload");
 const Book = require("../models/book");
 const User = require("../models/user");
 const Rate = require("../models/rate");
 const isAuth = require("../is-Auth");
 
 const router = express.Router();
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "./public/uploads");
-  },
-  filename: function (req, file, cb) {
-    cb(
-      null,
-      `${file.originalname.split(".")[0]}-${Date.now()}.${
-        file.originalname.split(".")[1]
-      }`
-    );
-  },
-});
-
-const upload = multer({
-  limits: {
-    fileSize: 1000000,
-  },
-  fileFilter(req, file, cb) {
-    if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-      return cb(new Error("Please upload an image"));
-    }
-    cb(undefined, true);
-  },
-  storage,
-});
 
 router.post(
   "/add-book",
@@ -54,14 +26,18 @@ router.post(
       return res.status(422).send({ errors: errors.array()[0].msg });
     }
     let photo;
-    req.file ? (photo = req.file.patch) : (photo = null);
+
     try {
+      const result = await cloudinary.uploader.upload(req.file.path);
+      req.file ? (photo = result.secure_url) : (photo = null);
+
       const user = await User.findById({ _id: req.user._id });
       const book = new Book({
         name: req.body.name,
         type: req.body.type,
         description: req.body.description,
         image: photo,
+        cloudinary_id: result.public_id,
         authorId: req.user._id,
       });
 
@@ -180,6 +156,8 @@ router.delete("/delete-book/:id", isAuth, async (req, res) => {
     const book = await Book.findByIdAndDelete(bookId);
     if (!book) return res.status(404).send("no book found");
 
+    await cloudinary.uploader.destroy(book.cloudinary_id);
+
     const user = await User.findById(req.user._id);
     user.books.bookId = user.books.bookId.filter((book) => {
       return book.toString() !== bookId;
@@ -198,7 +176,7 @@ router.get("/my-books", isAuth, async (req, res) => {
       "books.bookId"
     );
     const booksArray = user.books.bookId;
-    if (!booksArray.length) return res.send("no books to display");
+    if (!booksArray.length) return res.send({ msg: "no books to display" });
     res.send(
       booksArray.map((book) => {
         return book;
@@ -211,7 +189,6 @@ router.get("/my-books", isAuth, async (req, res) => {
 });
 
 // Public routes
-
 router.get("/single-book/:id", async (req, res) => {
   const bookId = req.params.id;
   const book = await Book.findById(bookId);

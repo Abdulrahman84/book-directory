@@ -1,6 +1,6 @@
 const express = require("express");
-const multer = require("multer");
 const { body, validationResult } = require("express-validator");
+const { upload, cloudinary } = require("../upload");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -8,30 +8,6 @@ const User = require("../models/user");
 const isAuth = require("../is-Auth");
 
 const router = express.Router();
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "./public/uploads");
-  },
-  filename: function (req, file, cb) {
-    cb(
-      null,
-      `${file.originalname.split(".")[0]}-${Date.now()}.${
-        file.originalname.split(".")[1]
-      }`
-    );
-  },
-});
-
-const upload = multer({
-  fileFilter(req, file, cb) {
-    if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-      return cb(new Error("Please upload an image"));
-    }
-    cb(undefined, true);
-  },
-  storage,
-});
 
 router.get("/profile", isAuth, async (req, res) => {
   res.send(req.user);
@@ -65,7 +41,9 @@ router.post(
           .status(400)
           .send({ error: "email already in use try another one" });
 
-      req.file ? (photo = req.file.path) : (photo = null);
+      const result = await cloudinary.uploader.upload(req.file.path);
+
+      req.file ? (photo = result.secure_url) : (photo = null);
 
       const hashedPassword = await bcrypt.hash(req.body.password, 10);
       const user = new User({
@@ -73,6 +51,7 @@ router.post(
         email: req.body.email,
         password: hashedPassword,
         profilePhoto: photo,
+        cloudinary_id: result.public_id,
         books: [],
       });
       const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
@@ -190,6 +169,7 @@ router.patch(
 
 router.delete("/delete-profile", isAuth, async (req, res) => {
   try {
+    await cloudinary.uploader.destroy(req.user.cloudinary_id);
     await req.user.remove();
     res.send({ "Deleted user": req.user });
   } catch (err) {
@@ -205,13 +185,15 @@ router.post(
   async (req, res) => {
     if (!req.file)
       return res.status(400).send({ error: "please upload a photo" });
-    req.user.profilePhoto = req.file.buffer;
+    const result = await cloudinary.uploader.upload(req.file.path);
+    req.user.profilePhoto = result.secure_url;
     await req.user.save();
     res.send(req.user);
   }
 );
 
 router.delete("/profile-photo", isAuth, async (req, res) => {
+  await cloudinary.uploader.destroy(req.user.cloudinary_id);
   req.user.profilePhoto = undefined;
   await req.user.save();
   res.send("profile photo deleted");

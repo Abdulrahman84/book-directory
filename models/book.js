@@ -21,6 +21,9 @@ const Book = new mongoose.Schema(
     image: {
       type: String,
     },
+    cloudinary_id: {
+      type: String,
+    },
     rate: {
       type: Number,
       default: 0,
