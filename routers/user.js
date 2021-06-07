@@ -34,6 +34,7 @@ router.post(
       return res.status(422).send({ errors: errors.array()[0].msg });
     }
     let photo;
+    let cl_id;
     try {
       const emailMatch = await User.findOne({ email: req.body.email });
       if (emailMatch)
@@ -41,9 +42,14 @@ router.post(
           .status(400)
           .send({ error: "email already in use try another one" });
 
-      const result = await cloudinary.uploader.upload(req.file.path);
-
-      req.file ? (photo = result.secure_url) : (photo = null);
+      if (req.file) {
+        const result = await cloudinary.uploader.upload(req.file.path);
+        photo = result.secure_url;
+        cl_id = result.public_id;
+      } else {
+        photo = null;
+        cl_id = null;
+      }
 
       const hashedPassword = await bcrypt.hash(req.body.password, 10);
       const user = new User({
@@ -51,7 +57,7 @@ router.post(
         email: req.body.email,
         password: hashedPassword,
         profilePhoto: photo,
-        cloudinary_id: result.public_id,
+        cloudinary_id: cl_id,
         books: [],
       });
       const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
