@@ -43,7 +43,7 @@ router.post(
         type: req.body.type,
         description: req.body.description,
         image: photo,
-        cloudinary_id: result.public_id,
+        cloudinary_id: cl_id,
         authorId: req.user._id,
       });
 
