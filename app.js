@@ -1,6 +1,5 @@
 const path = require("path");
 const express = require("express");
-const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
@@ -11,11 +10,7 @@ const bookRouter = require("./routers/book");
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
-
-app.use(cors({ origin: "*" }));
+app.use(cors());
 // app.use((req, res, next) => {
 //   res.header("Access-Control-Allow-Origin", "*");
 //   res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
@@ -25,6 +20,10 @@ app.use(cors({ origin: "*" }));
 //   );
 //   next();
 // });
+// app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
+
 app.use(userRouter);
 app.use(bookRouter);
 

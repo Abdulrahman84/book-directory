@@ -68,8 +68,11 @@ router.post(
       res.status(201).send({ token });
     } catch (err) {
       console.log(err);
-      res.status(422).send({ error: err });
+      res.status(422).send({ error: err.message });
     }
+  },
+  (error, req, res, next) => {
+    res.status(400).send({ error: error.message });
   }
 );
 
@@ -195,6 +198,9 @@ router.post(
     req.user.profilePhoto = result.secure_url;
     await req.user.save();
     res.send(req.user);
+  },
+  (error, req, res, next) => {
+    res.status(400).send({ error: error.message });
   }
 );
 
