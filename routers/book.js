@@ -162,18 +162,25 @@ router.post(
   isAuth,
   upload.single("image"),
   async (req, res) => {
-    if (!req.file)
+    let photo;
+    let cl_id;
+    if (!req.file) {
+      photo = null;
+      cl_id = null;
       return res.status(400).send({ error: "please upload a photo" });
-
-    const result = await cloudinary.uploader.upload(req.file.path);
-
+    }
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path);
+      photo = result.secure_url;
+      cl_id = result.public_id;
+    }
     const id = req.params.id;
-    const book = await Book.findById(id);
-    if (!book) return res.status(404).send({ err: "no book found" });
-
-    book.image = result.secure_url;
-    await book.save();
-
+    const book = await Book.findByIdAndUpdate(
+      id,
+      { image: photo, cloudinary_id: cl_id },
+      { new: true }
+    );
+    if (!book) return res.status(404).send({ error: "no book found" });
     res.send({ message: "book image updated successfully", image: book.image });
   },
   (error, req, res, next) => {
