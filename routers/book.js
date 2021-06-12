@@ -149,8 +149,7 @@ router.patch(
         ? (book.description = req.body.description)
         : (book.description = book.description);
       await book.save();
-      console.log("updated");
-      res.send();
+      res.send({ message: "book updated successfully" });
     } catch (err) {
       console.log(err);
       res.status(500).send(err);
@@ -158,19 +157,23 @@ router.patch(
   }
 );
 
-router.patch(
+router.post(
   "/book-image/:id",
   isAuth,
   upload.single("image"),
   async (req, res) => {
     if (!req.file)
       return res.status(400).send({ error: "please upload a photo" });
-    const id = req.params.id;
+
     const result = await cloudinary.uploader.upload(req.file.path);
+
+    const id = req.params.id;
     const book = await Book.findById(id);
+    if (!book) res.status(404).send({ err: "no book found" });
+
     book.image = result.secure_url;
 
-    res.send(book);
+    res.send({ message: "book image updated successfully", image: book.image });
   },
   (error, req, res, next) => {
     res.status(400).send({ error: error.message });
