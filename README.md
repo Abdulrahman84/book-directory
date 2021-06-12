@@ -23,6 +23,12 @@ npm run dev (nodemon) (port 3000)
 - Add a new book (name, type, description, image)
   - https://book-directory0.herokuapp.com/add-book
 
+- Set/update profile picture
+  - https://book-directory0.herokuapp.com/profile-photo
+
+- Update book image
+  - https://book-directory0.herokuapp.com/book-image/:bookId
+
 - Rate a book
   - https://book-directory0.herokuapp.com/rate-book/:bookId
 
@@ -30,9 +36,6 @@ npm run dev (nodemon) (port 3000)
   - https://book-directory0.herokuapp.com/logout
 
 <h4>PATCH REQUESTS</h4>
-
-- Set/update profile picture
-  - https://book-directory0.herokuapp.com/profilePhoto
 
 - Update profile info
   - https://book-directory0.herokuapp.com/update-user/:userId
