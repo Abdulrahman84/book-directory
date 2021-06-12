@@ -169,9 +169,10 @@ router.post(
 
     const id = req.params.id;
     const book = await Book.findById(id);
-    if (!book) res.status(404).send({ err: "no book found" });
+    if (!book) return res.status(404).send({ err: "no book found" });
 
     book.image = result.secure_url;
+    await book.save();
 
     res.send({ message: "book image updated successfully", image: book.image });
   },
