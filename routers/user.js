@@ -178,7 +178,8 @@ router.patch(
 
 router.delete("/delete-profile", isAuth, async (req, res) => {
   try {
-    await cloudinary.uploader.destroy(req.user.cloudinary_id);
+    if (req.user.cloudinary_id)
+      await cloudinary.uploader.destroy(req.user.cloudinary_id);
     await req.user.remove();
     res.send({ "Deleted user": req.user });
   } catch (err) {
@@ -192,12 +193,19 @@ router.post(
   isAuth,
   upload.single("profilePhoto"),
   async (req, res) => {
-    if (!req.file)
-      return res.status(400).send({ error: "please upload a photo" });
-    const result = await cloudinary.uploader.upload(req.file.path);
-    req.user.profilePhoto = result.secure_url;
-    await req.user.save();
-    res.send(req.user);
+    try {
+      if (!req.file)
+        return res.status(400).send({ error: "please upload a photo" });
+      if (req.user.cloudinary_id)
+        await cloudinary.uploader.destroy(req.user.cloudinary_id);
+      const result = await cloudinary.uploader.upload(req.file.path);
+      req.user.profilePhoto = result.secure_url;
+      req.user.cloudinary_id = result.public_id;
+      await req.user.save();
+      res.send(req.user);
+    } catch (err) {
+      res.status(500).send(err);
+    }
   },
   (error, req, res, next) => {
     res.status(400).send({ error: error.message });
@@ -205,10 +213,13 @@ router.post(
 );
 
 router.delete("/profile-photo", isAuth, async (req, res) => {
-  await cloudinary.uploader.destroy(req.user.cloudinary_id);
-  req.user.profilePhoto = undefined;
+  if (!req.user.profilePhoto)
+    return res.send({ message: "No profile photo to delete" });
+  if (req.user.cloudinary_id)
+    await cloudinary.uploader.destroy(req.user.cloudinary_id);
+
   await req.user.save();
-  res.send("profile photo deleted");
+  res.send({ message: "profile photo deleted" });
 });
 
 module.exports = router;
