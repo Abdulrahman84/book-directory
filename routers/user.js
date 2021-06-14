@@ -219,7 +219,7 @@ router.delete("/profile-photo", isAuth, async (req, res) => {
     await cloudinary.uploader.destroy(req.user.cloudinary_id);
   req.user.profilePhoto = null;
   await req.user.save();
-  res.send({ message: "profile photo deleted" });
+  res.send(req.user);
 });
 
 module.exports = router;
