@@ -37,7 +37,6 @@ router.post(
         cl_id = null;
       }
 
-      const user = await User.findById({ _id: req.user._id });
       const book = new Book({
         name: req.body.name,
         type: req.body.type,
@@ -47,12 +46,13 @@ router.post(
         authorId: req.user._id,
       });
 
-      user.books.bookId.push(book._id);
-      await user.save();
+      req.user.books.bookId.push(book._id);
+      await req.user.save();
+
+      await book.populate("authorId", "name").execPopulate();
 
       book.save(() => {
-        console.log("created");
-        res.status(201).send({ created: book.name });
+        res.status(201).send({ book });
       });
     } catch (err) {
       console.log(err);
@@ -106,7 +106,6 @@ router.post(
       const avgRate = ratesArray.find((document) => {
         return document._id.toString() === rate.ratedBook.toString();
       });
-      console.log(avgRate.avergeRate.toFixed(1));
       book.rate = avgRate.avergeRate.toFixed(1);
       await book.save();
 
@@ -231,6 +230,9 @@ router.get("/single-book/:id", async (req, res) => {
   const bookId = req.params.id;
   const book = await Book.findById(bookId);
   if (!book) return res.status(404).send({ error: "no book found" });
+
+  await book.populate("authorId", "name").execPopulate();
+
   res.send(book);
 });
 
@@ -240,6 +242,7 @@ router.get("/all-books", async (req, res) => {
       .sort({ createdAt: 1 })
       .limit(parseInt(req.query.limit))
       .skip(parseInt(req.query.skip));
+
     res.send(books);
   } catch (err) {
     res.status(500).send(err);
@@ -251,12 +254,15 @@ router.get("/book-by-name", async (req, res) => {
     const bookName = req.query.bookName;
     if (!bookName)
       return res.status(400).send({ error: "please provide a book name" });
-    const books = await Book.find({ name: bookName })
+
+    const books = await Book.find({ $text: { $search: bookName } })
       .sort({ createdAt: 1 })
       .limit(parseInt(req.query.limit))
       .skip(parseInt(req.query.skip));
     if (!books.length)
-      return res.status(404).send({ error: "No book with this name found" });
+      return res
+        .status(404)
+        .send({ error: "Sorry, no book matched your search" });
     res.send(books);
   } catch (err) {
     res.send(err);
@@ -271,7 +277,10 @@ router.get("/book-by-type", async (req, res) => {
       .sort({ createdAt: 1 })
       .limit(parseInt(req.query.limit))
       .skip(parseInt(req.query.skip));
-    if (!books.length) return res.status(404).send();
+    if (!books.length)
+      return res
+        .status(404)
+        .send({ error: "Sorry, no book matched your search" });
     res.send(books);
   } catch (err) {
     res.send(err);
