@@ -109,7 +109,7 @@ router.post(
       book.rate = avgRate.avergeRate.toFixed(1);
       await book.save();
 
-      res.status(201).send({ rate: rate.rating });
+      res.status(201).send({ book });
     } catch (err) {
       console.log(err);
       res.status(500).send(err);
@@ -231,7 +231,7 @@ router.get("/single-book/:id", async (req, res) => {
   const book = await Book.findById(bookId);
   if (!book) return res.status(404).send({ error: "no book found" });
 
-  await book.populate("authorId", "name").execPopulate();
+  await book.populate("authorId", "name -_id").execPopulate();
 
   res.send(book);
 });
@@ -239,6 +239,7 @@ router.get("/single-book/:id", async (req, res) => {
 router.get("/all-books", async (req, res) => {
   try {
     const books = await Book.find()
+      .populate("authorId", "name -_id")
       .sort({ createdAt: 1 })
       .limit(parseInt(req.query.limit))
       .skip(parseInt(req.query.skip));
@@ -265,6 +266,7 @@ router.get("/book-by-name", async (req, res) => {
         .send({ error: "Sorry, no book matched your search" });
     res.send(books);
   } catch (err) {
+    console.log(err);
     res.send(err);
   }
 });
@@ -273,7 +275,7 @@ router.get("/book-by-type", async (req, res) => {
   try {
     const type = req.query.type;
     if (!type) return res.send({ error: "please provide a type search" });
-    const books = await Book.find({ type })
+    const books = await Book.find({ $text: { $search: bookName } })
       .sort({ createdAt: 1 })
       .limit(parseInt(req.query.limit))
       .skip(parseInt(req.query.skip));
