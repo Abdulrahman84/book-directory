@@ -240,7 +240,7 @@ router.get("/all-books", async (req, res) => {
   try {
     const books = await Book.find()
       .populate("authorId", "name -_id")
-      .sort({ createdAt: 1 })
+      .sort({ createdAt: -1 })
       .limit(parseInt(req.query.limit))
       .skip(parseInt(req.query.skip));
 
