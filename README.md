@@ -2,7 +2,7 @@
 
 Book directory api built using Node.js, Express and MongoDB(Mongoose).
 
-Api : https://https://book-directory.onrender.com/home
+Api : https://good-reads.onrender.com
 <br>
 live : https://mohhamedhassan.github.io/goodReads/home
 
